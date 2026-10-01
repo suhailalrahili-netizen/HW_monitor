@@ -2,7 +2,7 @@
  
 A small desktop dashboard that shows camera and microphone usage events in real time, built with Python and [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
  
-The dashboard only **reads** events. A separate monitor writes them to a file, and the dashboard displays them as they arrive.
+The dashboard only **reads** events. A separate process writes them to a file, and the dashboard displays them as they arrive.
  
 ## Features
  
@@ -36,7 +36,7 @@ The dashboard watches this file:
 It is created automatically if it does not exist. Each line is one JSON event:
  
 ```json
-{"timestamp": "12:00:01", "device": "CAMERA", "pid": 1234, "process_name": "zoom", "action": "start"}
+{"timestamp": "2026-10-01 15:26:33", "device": "CAMERA", "pid": 13531, "process_name": "brave", "action": "RECORDING_STARTED"}
 ```
  
 | Field          | Description                                   |
@@ -50,7 +50,7 @@ It is created automatically if it does not exist. Each line is one JSON event:
 To test without a monitor, append a line yourself:
  
 ```bash
-echo '{"timestamp":"12:00:01","device":"CAMERA","pid":1234,"process_name":"test","action":"start"}' >> ~/.hw_events.jsonl
+echo '{"timestamp":"12:00:01","device":"CAMERA","pid":1234,"process_name":"test","action":"RECORDING_STARTED"}' >> ~/.hw_events.jsonl
 ```
  
 ## How to use

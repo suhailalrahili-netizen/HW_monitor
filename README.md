@@ -1,11 +1,9 @@
 # HW_monitor
 
-# Camera and Microphone Access Monitor
-
-A small Linux tool that tells you when a program starts using your webcam or mic.
+A Linux tool that tells you when a program starts using your webcam or mic.
 
 ```
-hw_monitor.c -> project_mimi_group.py -> /tmp/hw_events.jsonl -> dashboard.py
+kernel module -> python parser & notifier -> python UI
 ```
 
 ## hw_monitor.c
@@ -16,9 +14,9 @@ This file is written in C and is built as a Linux kernel module. It plants two k
 [HW_MONITOR] DEVICE=CAMERA, PID=1974, NAME=Discord, ACTION=RECORDING_STARTED
 ```
 
-## project_mimi_group.py
+## project_mini_group.py
 
-This file is a Python script that runs as a background daemon. It follows the kernel log live with `journalctl -k -f` and matches the lines above with a regex. It ignores system processes (`systemd`, `pipewire`, `wireplumber`, ...) and repeated events from the same device within 5 seconds. Every event that passes is appended as one JSON line to `/tmp/hw_events.jsonl`, and a desktop notification is shown with the device, the app name and the action:
+This file is a Python script that runs as a background daemon. It follows the kernel log live with `journalctl -k -f` and matches the lines above with a regex. It ignores system processes (`systemd`, `wireplumber`, ...) and repeated events from the same device within 5 seconds. Every event that passes is appended as one JSON line to `~/.hw_events.jsonl`, and a desktop notification is shown with the device, the app name and the action:
 
 ```json
 {"timestamp": "2026-09-30 11:34:08", "device": "CAMERA", "pid": 1974, "process_name": "Discord", "action": "RECORDING_STARTED"}
@@ -26,14 +24,43 @@ This file is a Python script that runs as a background daemon. It follows the ke
 
 ## dashboard.py
 
-This file is a Python desktop app built with CustomTkinter. It keeps reading `/tmp/hw_events.jsonl` in a background thread and adds every new event to a scrolling table (timestamp, device, PID, process, action). Camera events are shown in red and microphone events in orange. The buttons at the top let you show a single column, and in the All view two checkboxes filter the rows by camera or microphone.
+This file is a Python desktop app built with CustomTkinter. It keeps reading `~/.hw_events.jsonl` and adds every new event to a scrolling table (timestamp, device, PID, process, action). Camera events are shown in red and microphone events in orange. The buttons at the top let you show a single column, and in the All view two checkboxes filter the rows by camera or microphone.
 
 ## The files only agree on two formats
 
-1. The kernel log line printed by `hw_monitor.c` and parsed by `project_mimi_group.py`:
+1. The kernel log line printed by `hw_monitor.c` and parsed by `project_mini_group.py`:
 
 ```
    [HW_MONITOR] DEVICE=..., PID=..., NAME=..., ACTION=...
 ```
 
-2. The JSON line written by `project_mimi_group.py` and read by `dashboard.py`, with the keys `timestamp`, `device`, `pid`, `process_name` and `action`.
+2. The JSON line written by `project_mini_group.py` and read by `dashboard.py`, with the keys `timestamp`, `device`, `pid`, `process_name` and `action`.
+
+## Installation and Usage
+
+### Prerequisites
+Ensure you have the standard Linux build tools and kernel headers installed for the C module, along with the required Python libraries for the UI:
+```bash
+sudo apt install build-essential linux-headers-$(uname -r)
+pip3 install customtkinter
+```
+
+### 1. Build and Load the Kernel Module (make sure your working directory is kernel_module)
+Compile the C code into a kernel object and insert it into the kernel space:
+```bash
+make
+sudo insmod hw_monitor.ko
+```
+*(Note: To stop monitoring and remove the module later, run `sudo rmmod hw_monitor`)*
+
+### 2. Start the Background Parser
+Run the daemon script with root privileges so it can read the live kernel logs. This process will detach from the terminal and run silently in the background:
+```bash
+sudo python3 project_mini_group.py
+```
+
+### 3. Launch the Dashboard
+Start the CustomTkinter graphical interface to view the live logs. This command will consume the active terminal session until you close the application window:
+```bash
+python3 dashboard.py
+```
