@@ -22,7 +22,7 @@ pip install customtkinter
 ## Run
  
 ```bash
-python dashboard.py
+python3 dashboard.py
 ```
  
 ## Event file
