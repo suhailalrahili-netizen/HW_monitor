@@ -13,7 +13,7 @@ The dashboard only **reads** events. A separate monitor writes them to a file, a
 - Dark mode UI
 ## Requirements
  
-- Python 3.8+
+- Python 
 - customtkinter
 ```bash
 pip install customtkinter
